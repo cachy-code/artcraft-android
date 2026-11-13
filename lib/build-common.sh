@@ -997,8 +997,7 @@ fn saf_poll(bridge: &saf::Bridge, state: &SafState, _inbox: &SafInbox) {
         let kind = value.get("kind").and_then(serde_json::Value::as_str).unwrap_or_default();
         let status = value.get("status").and_then(serde_json::Value::as_str).unwrap_or("error");
         let paths: Option<Vec<std::path::PathBuf>> = if status == "ok" {
-            Some(saf::picker_paths(&value).into_iter().map(std::path::PathBuf::from).collect())
-        } else {
+            Some(saf::picker_paths(&value).into_iter().map(std::path::PathBuf::from).collect())        } else {
             None
         };
         // The staged destination is written by the app itself; watch it so any writes are
@@ -1997,8 +1996,7 @@ fn saf_open_paths_many(bridge: &saf::Bridge, state: &SafState) -> Vec<String> {
 /// frame thread instead stalls `AndroidApp::poll_events`, which Android's lifecycle callbacks wait
 /// on, so the picker's `onPause` never returns and the system kills the app with an input-dispatch
 /// ANR.
-fn saf_services(bridge: saf::Bridge, state: Arc<SafState>, _inbox: SafInbox) -> Services {
-    let picker_bridge = bridge.clone_ref();
+fn saf_services(bridge: saf::Bridge, state: Arc<SafState>, _inbox: SafInbox) -> Services {    let picker_bridge = bridge.clone_ref();
     let picker_state = Arc::clone(&state);
     let write_bridge = bridge.clone_ref();
     let files_bridge = bridge.clone_ref();
@@ -2997,8 +2995,7 @@ try:
                 if m_cpal:
                     cpal_ver = m_cpal.group(1)
                     break
-    cpal_dep = "".join(f"{dep}\n" for dep in (f'cpal = "{cpal_ver}"', *AUDIO_MODULES[app][2])) if app in AUDIO_MODULES else ''
-    # EffectCraft's Android launcher must build a fully wired session (`effectcraft-host`), not a
+    cpal_dep = "".join(f"{dep}\n" for dep in (f'cpal = "{cpal_ver}"', *AUDIO_MODULES[app][2])) if app in AUDIO_MODULES else ''    # EffectCraft's Android launcher must build a fully wired session (`effectcraft-host`), not a
     # bare `Session::new()`: without the host's importer and exporter, every import and export fails
     # with "media import is not available in this build" / "export is not available in this build".
     host_dep = 'effectcraft-host = { path = "../../crates/host" }\n' if app == "effectcraft" else ''
@@ -3997,8 +3994,7 @@ fn android_main(android_app: android_activity::AndroidApp) {{
 {soundcraft_mic}    let saf_state = saf_new_state();
     let saf_inbox = SafInbox::default();
 {outer_construct}    let mut options = eframe::NativeOptions {{
-        renderer: eframe::Renderer::Wgpu,
-        viewport: egui::ViewportBuilder::default()
+        renderer: eframe::Renderer::Wgpu,        viewport: egui::ViewportBuilder::default()
             .with_title("{title}")
             .with_drag_and_drop(true),
         android_app: Some(android_app.clone()),
@@ -4855,6 +4851,27 @@ else
         fail "Debug native build failed (exit $status). Log: $ROOT/$LOG"
     fi
 fi
+
+
+# SolidCraft's Rust debug library is several gigabytes because it contains DWARF information.
+# Strip that information before Gradle sees the JNI library: AGP's own strip task cannot handle
+# the oversized unstripped ELF and can fail APK packaging with an integer overflow.
+if [[ "$APP" == "solidcraft" ]]; then
+    SOLIDCRAFT_SO="$ANDROID_DIR/jniLibs/armeabi-v7a/libsolidcraft_android.so"
+    [[ -f "$SOLIDCRAFT_SO" ]] || fail "SolidCraft native library not found: $SOLIDCRAFT_SO"
+
+    NDK_DIR="$(find_android_ndk || true)"
+    [[ -n "$NDK_DIR" ]] || fail "Android NDK not found; cannot strip SolidCraft native debug information."
+    LLVM_STRIP="$(find "$NDK_DIR/toolchains/llvm/prebuilt" -path '*/bin/llvm-strip' -print -quit 2>/dev/null || true)"
+    [[ -n "$LLVM_STRIP" && -x "$LLVM_STRIP" ]] || fail "Android NDK llvm-strip not found under $NDK_DIR."
+
+    echo "  -> stripping SolidCraft native debug information"
+    "$LLVM_STRIP" --strip-debug "$SOLIDCRAFT_SO" \
+        || fail "Failed to strip SolidCraft native debug information."
+    echo "  -> SolidCraft native library after stripping:"
+    ls -lh "$SOLIDCRAFT_SO"
+fi
+
 
 GRADLE_JDK="$(find_gradle_jdk || true)"
 if [[ -z "$GRADLE_JDK" ]]; then
