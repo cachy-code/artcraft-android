@@ -436,7 +436,7 @@ PY
 }
 
 say 2 "Finding Android SDK and NDK (the builder's own SDK lives in $ROOT/android-sdk)..."
-TARGET_SDK="${ARTCRAFT_TARGET_SDK:-35}"
+TARGET_SDK="${ARTCRAFT_TARGET_SDK:-30}"
 BUILD_TOOLS_VERSION="${ARTCRAFT_BUILD_TOOLS_VERSION:-37.0.0}"
 NDK_VERSION="${ARTCRAFT_NDK_VERSION:-27.2.12479018}"
 SDK="$(find_android_sdk)"
@@ -464,8 +464,8 @@ echo "SDK: $SDK"
 echo "Platform: android-$TARGET_SDK"
 echo "Build Tools: $BUILD_TOOLS"
 echo "NDK: $NDK"
-if command -v rustup >/dev/null 2>&1 && ! rustup target list --installed | grep -qx 'aarch64-linux-android'; then
-    fail "Rust target is missing. Install it once with: rustup target add aarch64-linux-android"
+if command -v rustup >/dev/null 2>&1 && ! rustup target list --installed | grep -qx 'armv7-linux-androideabi'; then
+    fail "Rust target is missing. Install it once with: rustup target add armv7-linux-androideabi"
 fi
 
 say 3 "Fetching official source for $TITLE..."
@@ -3092,7 +3092,7 @@ android_logger = "0.15"
 [package.metadata.android]
 package = "{package_name}"
 apk_name = "{apk_basename}"
-build_targets = ["aarch64-linux-android"]
+build_targets = ["armv7-linux-androideabi"]
 resources = "res"
 {java_sources}
 [package.metadata.android.sdk]
@@ -4265,7 +4265,7 @@ PY
 
 # Some apps call `rfd` directly from a crate that ends up in the launcher's dependency graph
 # (PDFCraft does, in ~18 files), and rfd 0.17 ships no Android backend, so it fails to compile for
-# `aarch64-linux-android`. Vendor the builder's Android-compatible copy (a stub backend that
+# `armv7-linux-androideabi`. Vendor the builder's Android-compatible copy (a stub backend that
 # resolves dialogs to "cancelled") and patch it into the workspace so the launcher builds. Real
 # open/save on Android needs a platform adapter (see adapters/README.md).
 if grep -rqE '\brfd::' "$SRC"/crates/*/src 2>/dev/null || grep -qE '^\s*rfd\s*=' "$SRC/Cargo.toml" 2>/dev/null; then
@@ -4292,7 +4292,7 @@ fi
 
 # Some apps also use arboard (the clipboard) from a crate in the launcher's dependency graph
 # (PDFCraft does). arboard ships no Android backend and its Unix backend needs X11/Wayland, so it
-# cannot compile for `aarch64-linux-android`. Vendor the builder's Android-compatible stub (a
+# cannot compile for `armv7-linux-androideabi`. Vendor the builder's Android-compatible stub (a
 # no-op clipboard) and patch it in. If crates use `arboard = { workspace = true }`, we must
 # replace the workspace dependency; otherwise we add it via `[patch.crates-io]`.
 if grep -rqE '\barboard\b' "$SRC"/crates/*/src "$SRC"/apps/*/src 2>/dev/null; then
@@ -4838,17 +4838,17 @@ python3 "$ROOT/lib/android_project.py" "$ROOT" "$ANDROID_DIR" "$APP" "$APP_VERSI
 # shellcheck source=/dev/null
 source "$ANDROID_DIR/.artcraft-gradle.properties"
 
-echo "  -> building the native library with cargo-ndk (arm64-v8a, API $MIN_SDK)"
+echo "  -> building the native library with cargo-ndk (armeabi-v7a, API $MIN_SDK)"
 rm -rf "$ANDROID_DIR/jniLibs"
 if [[ "$MODE" == "release" ]]; then
-    if cargo ndk -t arm64-v8a -P "$MIN_SDK" -o "$ANDROID_DIR/jniLibs" build --release 2>&1 | tee "$ROOT/$LOG"; then
+    if cargo ndk -t armeabi-v7a -P "$MIN_SDK" -o "$ANDROID_DIR/jniLibs" build --release 2>&1 | tee "$ROOT/$LOG"; then
         :
     else
         status=$?
         fail "Release native build failed (exit $status). Log: $ROOT/$LOG"
     fi
 else
-    if cargo ndk -t arm64-v8a -P "$MIN_SDK" -o "$ANDROID_DIR/jniLibs" build 2>&1 | tee "$ROOT/$LOG"; then
+    if cargo ndk -t armeabi-v7a -P "$MIN_SDK" -o "$ANDROID_DIR/jniLibs" build 2>&1 | tee "$ROOT/$LOG"; then
         :
     else
         status=$?

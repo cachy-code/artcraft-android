@@ -187,6 +187,7 @@ android {{
 
     defaultConfig {{
         applicationId '{_groovy(namespace)}'
+        ndk {{ abiFilters 'armeabi-v7a' }}
         minSdk {min_sdk}
         targetSdk {target_sdk}
         // Mirrors ndk-build2's VersionCode so the Updater accepts upgrades from cargo-apk
