@@ -699,8 +699,8 @@ elif app == "solidcraft":
     # options when Android hands the app a file from another application.
     if fix(
         "apps/solidcraft-android/src/lib.rs",
-        "        self.inner.open_path(path);\\n",
-        "        self.inner.open_path_with(path, &Default::default());\\n",
+        "        self.inner.open_path(path);" + chr(10),
+        "        self.inner.open_path_with(path, &Default::default());" + chr(10),
     ):
         fixed.append("apps/solidcraft-android/src/lib.rs (open_path API)")
 
