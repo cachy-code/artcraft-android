@@ -4854,6 +4854,33 @@ else
         status=$?
         fail "Debug native build failed (exit $status). Log: $ROOT/$LOG"
     fi
+    # Strip Rust debug information before Gradle packages the native library.
+if [[ "$APP" == "solidcraft" && -d "$ANDROID_DIR/jniLibs/armeabi-v7a" ]]; then
+    LLVM_STRIP="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
+
+    if [[ ! -x "$LLVM_STRIP" ]]; then
+        LLVM_STRIP="$(find "${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}/ndk" \
+            -path '*/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip' \
+            -type f 2>/dev/null | sort -V | tail -n 1)"
+    fi
+
+    if [[ -z "$LLVM_STRIP" || ! -x "$LLVM_STRIP" ]]; then
+        fail "Android NDK llvm-strip not found; cannot strip native debug information."
+    fi
+
+    SOLIDCRAFT_SO="$ANDROID_DIR/jniLibs/armeabi-v7a/libsolidcraft_android.so"
+
+    if [[ ! -f "$SOLIDCRAFT_SO" ]]; then
+        fail "SolidCraft native library not found: $SOLIDCRAFT_SO"
+    fi
+
+    echo "  -> stripping SolidCraft native debug information"
+    "$LLVM_STRIP" --strip-debug "$SOLIDCRAFT_SO" \
+        || fail "Failed to strip SolidCraft native library"
+
+    echo "  -> native library size after stripping:"
+    ls -lh "$SOLIDCRAFT_SO"
+fi
 fi
 
 GRADLE_JDK="$(find_gradle_jdk || true)"
