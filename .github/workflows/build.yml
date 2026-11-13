@@ -141,9 +141,8 @@ jobs:
           cargo ndk -V
 
       - name: Configure Android SDK and NDK
-        env:
-          ARTCRAFT_TARGET_SDK: "30"
         run: |
+          echo "ARTCRAFT_TARGET_SDK=30" >> "$GITHUB_ENV"
           # Use pre-installed Android SDK and NDK on the runner
           if [ -d "$ANDROID_HOME/ndk/27.2.12479018" ]; then
             echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> $GITHUB_ENV
