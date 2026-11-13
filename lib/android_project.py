@@ -183,7 +183,7 @@ plugins {{
 
 android {{
     namespace '{_groovy(namespace)}'
-    compileSdk {target_sdk}
+    compileSdk 35
 
     defaultConfig {{
         applicationId '{_groovy(namespace)}'
