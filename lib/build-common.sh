@@ -693,6 +693,17 @@ elif app == "wordcraft":
     ):
         fixed.append("crates/ui-egui/src/window_ui.rs (swap_fields pattern)")
 
+elif app == "solidcraft":
+    # SolidCraft v0.41.0's Android adapter calls SolveApp::open_path(), which is only
+    # available in tests. The public API is open_path_with(path, options); use empty
+    # options when Android hands the app a file from another application.
+    if fix(
+        "apps/solidcraft-android/src/lib.rs",
+        "        self.inner.open_path(path);\\n",
+        "        self.inner.open_path_with(path, &Default::default());\\n",
+    ):
+        fixed.append("apps/solidcraft-android/src/lib.rs (open_path API)")
+
 if fixed:
     print(f"  Repaired upstream compile errors still present in {title}: {', '.join(fixed)}")
 PY
