@@ -60,6 +60,9 @@ jobs:
           sudo mkdir -p /opt/jdk
           sudo ln -s "$JAVA_HOME" /opt/jdk/temurin-21
 
+      - name: Set up Android SDK command-line tools
+        uses: android-actions/setup-android@v3
+
       - name: Set up Rust for ARMv7
         uses: dtolnay/rust-toolchain@stable
         with:
